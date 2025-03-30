@@ -1,5 +1,7 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import moment from 'moment';
 import React from 'react'
-
+const { parseISO, getYear, getMonth } = require('date-fns');
 // utils/validation.js
 
 const validate = {
@@ -51,7 +53,33 @@ const validate = {
       return false;
     }
     return true;
+  },
+  getToken: async () => {
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      console.log("Access Token:", token);
+      return token; // ✅ Cần return token để có thể sử dụng ở nơi khác
+  } catch (error) {
+      console.error("Lỗi khi lấy token:", error);
+      return null;
   }
+  },
+  getTimeFriend: (dateString)=>{
+    const date = parseISO(dateString);
+    
+    const year = getYear(date);
+    const month = String(getMonth(date) + 1);
+
+    return `Là bạn bè từ tháng ${month} năm ${year}`;
+  },
+  checkLike : (list,userId) => {
+    const reactionSet = new Set(list);
+    return reactionSet.has(userId);
+  },
+  formatDate : (reviewDate) => {
+    const formattedDate = moment(reviewDate).format('DD/MM/YYYY');
+    return formattedDate;
+  },
 };
 
 // Xuất object validate để có thể gọi validate.email(), validate.password(), ...

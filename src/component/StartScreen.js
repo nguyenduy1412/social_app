@@ -1,18 +1,29 @@
 import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import { Dimensions } from 'react-native'
 import { COLORS } from '../../contants';
+import { useAuth } from './AuthProvider';
 const {width,height} =Dimensions.get('screen')
 const StartScreen = () => {
     const navigation = useNavigation();
+    const { user, token } = useAuth(); // Lấy user & token từ context
 
+    useEffect(() => {
+        if (token && user) {
+            console.log(token,user)
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "ButtonTab" }], // Reset stack về Home
+            });
+        }
+    }, [token, user]); // Theo dõi token và user
     return (
       <View style={styles.container}>
         <Image style={styles.imageBackground} source={require('../../assets/start.png')}/>
         <View style={styles.content}>
             <TouchableOpacity
-                onPress={()=> navigation.navigate("Login")}
+                onPress={()=> navigation.navigate("SignUp")}
                 style={styles.btnSignup}>
                     <Text style={styles.textSignup}>
                         Bắt đầu

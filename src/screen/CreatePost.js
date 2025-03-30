@@ -1,5 +1,5 @@
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Entypo } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -9,7 +9,6 @@ import { AntDesign } from '@expo/vector-icons';
 import { COLORS } from '../../contants';
 import { Image } from 'react-native';
 import axios from 'axios';
-import { API_URL, token } from "@env";
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { FlatList } from 'react-native-gesture-handler';
@@ -17,8 +16,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import ImageGrid from '../component/ImageGrid';
 import { useNavigation } from '@react-navigation/native';
-const CreatePost = () => {
-  const [user, setUser] = useState('')
+import { useAuth } from '../component/AuthProvider';
+
+const CreatePost = ({route}) => {
+  const { user } = route.params; 
+  const { api} = useAuth();
   const [visibility, setVisibility] = useState("0");
   const [content, setContent] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -38,24 +40,6 @@ const CreatePost = () => {
     setVisibility(value);
     setIsDropdownOpen(false);
   };
-  useEffect(() => {
-    console.log('hứ')
-    const fetchUser = async () => {
-      try {
-        console.log('sos', API_URL)
-        const response = await axios.get(`${API_URL}/user/get-current-user`, {
-          headers: {
-            Authorization: `Bearer ${token}`, // Truyền token vào header
-          },
-        })
-        setUser(response.data);
-        
-      } catch (err) {
-        console.error("Lỗi khi lấy user:", err);
-      }
-    };
-    fetchUser();
-  }, []);
   const pickImages = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -79,46 +63,40 @@ const CreatePost = () => {
       setImages([...images, ...newImages]);
     }
   };
-  const createPost = async ()=>{
+  const createPost = async () => {
     try {
-      const formData = new FormData();
-      images.forEach(image => {
-        formData.append("files", {
-          uri: image.uri,
-          name: image.name,
-          type: image.type,
+        const formData = new FormData();
+
+        // ✅ Chỉ thêm ảnh nếu `images` không rỗng
+        if (images.length > 0) {
+            images.forEach(image => {
+                formData.append("files", {
+                    uri: image.uri,
+                    name: image.name,
+                    type: image.type,
+                });
+            });
+        }
+
+        formData.append("contents", content);
+        formData.append("visibility", visibility);
+
+        const response = await api.post(`/post`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
         });
-      });
-  
-      formData.append("contents", content);
-      formData.append("visibility", visibility);
-  
-      const response = await axios.post(`${API_URL}/post`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log("✅ Đăng bài thành công:", response.data);
-      navigation.reset({
-        routes: [
-          { name: "Account" } // Điều hướng về Account
-        ],
-      });
+
+        console.log("✅ Đăng bài thành công:", response.data);
+        navigation.reset({
+            routes: [{ name: "Account" }],
+        });
     } catch (error) {
-      console.error("Lỗi khi đăng bài:", error.response ? error.response.data : error.message);
+        console.error("❌ Lỗi khi đăng bài:", error.response ? error.response.data : error.message);
     }
-  }
-  const uploadImage = async (uri, imgName, apiUrl) => {
-    const formData = new FormData();
-    formData.append('files', {
-      uri,
-      name: imgName,
-      type: 'image/*',
-    });
-    formData.append("contents", postData.contents);
-    formData.append("visibility", visibility);
-  };
+};
+
+  
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       {/* tạo header */}

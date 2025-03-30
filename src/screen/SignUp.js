@@ -10,10 +10,10 @@ import { RadioButton } from 'react-native-paper';
 import validate from '../../utils/Validate';
 import Toast from 'react-native-toast-message'
 import axios from 'axios';
+import { ENV } from '../../contants/theme';
 const { width, height } = Dimensions.get('screen')
-import { API_URL } from "@env";
 const SignUp = () => {
- 
+  const API_URL= ENV.API_URL
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
@@ -65,7 +65,7 @@ const SignUp = () => {
     let check1 = true, check2 = true, check3 = true, check4 = true, check5 = true;
     
   
-    const formattedDate = `${date.getDate()}/${(date.getMonth()+1) <10 ? '0'+(date.getMonth()+1):(date.getMonth()+1)}/${date.getFullYear()}`;
+    const formattedDate = `${date.getDate() <10 ? '0'+date.getDate():date.getDate()}/${(date.getMonth()+1) <10 ? '0'+(date.getMonth()+1):(date.getMonth()+1)}/${date.getFullYear()}`;
     if (!validate.date(formattedDate)) {
       setErrorDate("Ngày sinh không hợp lệ")
       check1 = false;
